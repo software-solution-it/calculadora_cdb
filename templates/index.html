@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de CDB</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    
+    <div class="container">
+        <h1>Calculadora de Investimento em CDB</h1>
+        <form id="investmentForm">
+            <input type="number" id="investment" name="investment" placeholder="Insira o investimento mensal" required>
+            <button type="submit">Calcular</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('investmentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const investmentValue = document.getElementById('investment').value;
+            const formData = new FormData();
+            formData.append('investment', investmentValue);
+
+            fetch('/calculate', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `<p class="error">${data.error}</p>`;
+                } else {
+                    let resultHtml = '<h3>Crescimento do Investimento em 3 Anos:</h3><ul>';
+                    data.historico_saldo.forEach((saldo, index) => {
+                        resultHtml += `<li>Mês ${index + 1}: R$ ${saldo.toFixed(2)}</li>`;
+                    });
+                    resultHtml += `</ul><h3>Total Investido: R$ ${data.total_investido.toFixed(2)}</h3>`;
+                    resultHtml += `<h3>Saldo Final: R$ ${data.saldo_final.toFixed(2)}</h3>`;
+                    resultHtml += `<h3>Margem de Lucro: R$ ${data.margem_de_lucro.toFixed(2)}</h3>`;
+                    document.getElementById('result').innerHTML = resultHtml;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
